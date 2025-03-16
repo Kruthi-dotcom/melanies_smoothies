@@ -7,9 +7,8 @@ from snowflake.snowpark.functions import col
 st.title("🥤 Customize Your Smoothie! 🥤")
 st.write("Choose the fruits you want in your custom Smoothie!")
 
-# User Input for Smoothie Name
-name_on_order = st.text_input('Name on Smoothie:', '')
-st.write('The name on your Smoothie will be:', name_on_order)
+# User Input for Smoothie Name (No extra display)
+name_on_order = st.text_input('Enter the Name for Your Smoothie:', '')
 
 # Snowflake Connection
 cnx = st.connection("snowflake")
@@ -55,11 +54,8 @@ if ingredients_list:
         """
 
         # Button to submit order
-        time_to_insert = st.button('Submit Order')
-
-        if time_to_insert:
+        if st.button('Submit Order'):
             session.sql(my_insert_stmt).collect()
-            st.success(f'Your Smoothie is ordered! {name_on_order}', icon="✅")
+            st.success(f'Your Smoothie is ordered! 🎉', icon="✅")
     else:
         st.error("Please enter a name for your Smoothie before submitting.")
-
