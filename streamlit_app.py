@@ -25,10 +25,11 @@ my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT
 pd_df = my_dataframe.to_pandas()  # Convert Snowflake DataFrame to Pandas
 
 # Display Available Fruits
-#st.dataframe(pd_df)
+st.dataframe(pd_df)
 
-# Convert fruit names to a list for the dropdown
-fruit_list = pd_df['FRUIT_NAME'].tolist()
+# Convert fruit names and search values to a dictionary for selection
+fruit_dict = pd_df.set_index('FRUIT_NAME')['SEARCH_ON'].to_dict()
+fruit_list = list(fruit_dict.keys())
 
 # Multi-select for ingredients (Choose up to 5)
 ingredients_list = st.multiselect(
@@ -39,7 +40,7 @@ if ingredients_list:
     ingredients_string = ', '.join(ingredients_list)  # Join selected ingredients into a string
 
     for fruit_chosen in ingredients_list:
-        search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
+        search_on = fruit_dict.get(fruit_chosen)
 
         if search_on:  # Ensure there's a valid search value
             st.subheader(f"{fruit_chosen} Nutrition Information")
@@ -70,4 +71,3 @@ if ingredients_list:
             st.success(f'✅ Your Smoothie is ordered, {name_on_order}!')
     else:
         st.error("Please enter a name for your Smoothie before submitting.")
-
