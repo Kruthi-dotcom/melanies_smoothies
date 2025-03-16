@@ -1,0 +1,8 @@
+name: smoothie_app
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+      - streamlit
+      - snowflake-snowpark-python
+      - pandas
