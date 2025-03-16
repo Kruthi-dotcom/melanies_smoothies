@@ -47,7 +47,8 @@ if ingredients_list:
             try:
                 fruityvice_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
                 if fruityvice_response.status_code == 200:
-                    st.json(fruityvice_response.json())  # Display API response
+                    fruity_data = fruityvice_response.json()  # Extract JSON response
+                    st.json(fruity_data)  # Display API response
                 else:
                     st.write(f"Could not fetch data for {fruit_chosen}.")
             except Exception as e:
@@ -61,7 +62,7 @@ if ingredients_list:
         """
 
         # Submit Order Button (Styled in Red)
-        submit_button = st.markdown(
+        st.markdown(
             "<style>div.stButton button {background-color: #FF4B4B; color: white;}</style>",
             unsafe_allow_html=True
         )
@@ -71,26 +72,3 @@ if ingredients_list:
     else:
         st.error("Please enter a name for your Smoothie before submitting.")
 
-# Display Available Fruits
-st.dataframe(pd_df)
-
-# Convert fruit names to a list for the dropdown
-fruit_list = pd_df['FRUIT_NAME'].tolist()
-
-# Multi-select for ingredients (Choose up to 5)
-ingredients_list = st.multiselect(
-    'Choose up to 5 ingredients:', fruit_list, max_selections=5
-)
-
-if ingredients_list:
-    ingredients_string = ', '.join(ingredients_list)  # Join selected ingredients into a string
-
-    for fruit_chosen in ingredients_list:
-        search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-
-        if search_on:  # Ensure there's a valid search value
-            st.subheader(f"{fruit_chosen} Nutrition Information")
-            try:
-                fruityvice_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
-                if fruityvice_response.status_code == 200:
-                    st.json(fruityvice_response.json())  # 
