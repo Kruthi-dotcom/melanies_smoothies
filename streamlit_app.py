@@ -25,7 +25,7 @@ my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT
 pd_df = my_dataframe.to_pandas()  # Convert Snowflake DataFrame to Pandas
 
 # Display Available Fruits
-st.dataframe(pd_df)
+#st.dataframe(pd_df)
 
 # Convert fruit names and search values to a dictionary for selection
 fruit_dict = pd_df.set_index('FRUIT_NAME')['SEARCH_ON'].to_dict()
