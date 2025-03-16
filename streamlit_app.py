@@ -20,17 +20,25 @@ my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT
 
 # Convert the Snowpark DataFrame to a Pandas DataFrame
 pd_df = my_dataframe.to_pandas()
+
+# Debugging step: Check if data is fetched correctly
+st.write("Fetched Fruits Data:")
 st.dataframe(pd_df)
 
-# Stop execution to debug before moving forward
-st.stop()
+# Ensure pd_df is not empty
+if pd_df.empty:
+    st.error("No fruit options available! Please check the database.")
+    st.stop()
 
-# FIX: Use pd_df['FRUIT_NAME'].tolist() instead of passing Snowpark DataFrame
+# Create multiselect dropdown for ingredients
 ingredients_list = st.multiselect(
     'Choose up to 5 ingredients:',
     pd_df['FRUIT_NAME'].tolist(),  # Convert column to list
     max_selections=5
 )
+
+# Stop execution for debugging (after multiselect so it functions correctly)
+st.stop()
 
 if ingredients_list:
     ingredients_string = ''
