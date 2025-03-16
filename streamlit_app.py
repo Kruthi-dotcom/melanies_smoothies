@@ -7,10 +7,6 @@ from snowflake.snowpark.functions import col
 st.title("🥤 Customize Your Smoothie! 🥤")
 st.write("Choose the fruits you want in your custom Smoothie!")
 
-# User Input for Smoothie Name
-name_on_order = st.text_input('Name on Smoothie:')
-st.write('The name on your Smoothie will be:', name_on_order)
-
 # Snowflake Connection
 cnx = st.connection("snowflake")
 session = cnx.session()
@@ -19,9 +15,6 @@ session = cnx.session()
 my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
 pd_df = my_dataframe.to_pandas()
 
-# Display DataFrame
-st.dataframe(pd_df)
-
 # Convert fruit names to a list for the dropdown
 fruit_list = pd_df['FRUIT_NAME'].tolist()
 
@@ -29,31 +22,21 @@ fruit_list = pd_df['FRUIT_NAME'].tolist()
 ingredients_list = st.multiselect('Choose up to 5 ingredients:', fruit_list, max_selections=5)
 
 if ingredients_list:
-    ingredients_string = ', '.join(ingredients_list)
-
     for fruit_chosen in ingredients_list:
         search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
 
         if search_on:  # Ensure there's a valid search value
             st.subheader(f"{fruit_chosen} Nutrition Information")
+
             try:
                 fruityvice_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
                 if fruityvice_response.status_code == 200:
-                    st.json(fruityvice_response.json())  # Display response as JSON
+                    nutrition_data = fruityvice_response.json()
+                    st.table(nutrition_data)  # Display response as table
                 else:
                     st.write(f"Could not fetch data for {fruit_chosen}.")
             except Exception as e:
                 st.write(f"Error fetching data: {e}")
 
-    # Insert order into Snowflake
-    my_insert_stmt = f"""
-        INSERT INTO smoothies.public.orders (ingredients, name_on_order)
-        VALUES ('{ingredients_string}', '{name_on_order}')
-    """
-
-    # Button to submit order
-    time_to_insert = st.button('Submit Order')
-
-    if time_to_insert:
-        session.sql(my_insert_stmt).collect()
-        st.success(f'Your Smoothie is ordered! {name_on_order}', icon="✅")
+# Button to submit order (Handled manually via SQL insert)
+st.button('Submit Order')
