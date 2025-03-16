@@ -2,13 +2,14 @@
 import requests
 import streamlit as st
 from snowflake.snowpark.functions import col
+import uuid  # For generating random smoothie names
 
 # Streamlit App Title
 st.title("🥤 Customize Your Smoothie! 🥤")
 st.write("Choose the fruits you want in your custom Smoothie!")
 
-# User Input for Smoothie Name (No extra display)
-name_on_order = st.text_input('Enter the Name for Your Smoothie:', '')
+# Generate a random order name (hidden from user)
+default_smoothie_name = f"Smoothie-{uuid.uuid4().hex[:6]}"  # Generates a short unique ID
 
 # Snowflake Connection
 cnx = st.connection("snowflake")
@@ -40,22 +41,4 @@ if ingredients_list:
             try:
                 fruityvice_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
                 if fruityvice_response.status_code == 200:
-                    st.json(fruityvice_response.json())  # Display API response
-                else:
-                    st.write(f"Could not fetch data for {fruit_chosen}.")
-            except Exception as e:
-                st.write(f"Error fetching data: {e}")
-
-    # Ensure name_on_order is not empty before inserting into Snowflake
-    if name_on_order.strip():
-        my_insert_stmt = f"""
-            INSERT INTO smoothies.public.orders (ingredients, name_on_order)
-            VALUES ('{ingredients_string}', '{name_on_order}')
-        """
-
-        # Button to submit order
-        if st.button('Submit Order'):
-            session.sql(my_insert_stmt).collect()
-            st.success(f'Your Smoothie is ordered! 🎉', icon="✅")
-    else:
-        st.error("Please enter a name for your Smoothie before submitting.")
+                    st.json(fruityvice_response.json())  # 
