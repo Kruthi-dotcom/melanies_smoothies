@@ -48,7 +48,3 @@ if ingredients_list:
                     (ingredients_string, name_on_order)).collect()
         st.success(f'Your Smoothie is ordered, {name_on_order}!', icon="✅")
 
-    if time_to_submit:
-        session.sql(my_insert_stmt).collect()
-        st.success('Your Smoothie is ordered! ' +name_on_order, icon="✅")
-
