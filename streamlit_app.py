@@ -49,13 +49,18 @@ if ingredients_list:
 
     # Submit button
     if st.button('Submit Order'):
-        if name_on_order.strip() == "":
-            st.warning("Please enter a name before submitting your order.")
-        else:
-            # Insert into Snowflake with order_filled = False
-            session.sql("""
-                INSERT INTO smoothies.public.orders (order_filled, name_on_order, ingredients)
-                VALUES (?, ?, ?)
-            """, (False, name_on_order, ingredients_string)).collect()
+    if name_on_order.strip() == "":
+        st.warning("Please enter a name before submitting your order.")
+    else:
+        # Escape values to prevent SQL errors
+        safe_name = name_on_order.replace("'", "''")
+        safe_ingredients = ingredients_string.replace("'", "''")
 
-            st.success(f'Your Smoothie is ordered, {name_on_order}! 🍹', icon="✅")
+        # Build and run SQL
+        insert_query = f"""
+            INSERT INTO smoothies.public.orders (order_filled, name_on_order, ingredients)
+            VALUES (FALSE, '{safe_name}', '{safe_ingredients}')
+        """
+        session.sql(insert_query).collect()
+
+        st.success(f'Your Smoothie is ordered, {name_on_order}! 🍹', icon="✅")
