@@ -27,7 +27,6 @@ ingredients_list = st.multiselect(
     max_selections=5
 )
 
-# Handle ingredient selection
 if ingredients_list:
     ingredients_string = ", ".join(ingredients_list)  # Cleaned string format
 
@@ -45,19 +44,6 @@ if ingredients_list:
 
     # Submit order button
     if st.button('Submit Order'):
-        if name_on_order.strip() == "":
-            st.warning("Please enter a name before submitting your order.")
-        else:
-            # Escape values for SQL
-            safe_name = name_on_order.replace("'", "''")
-            safe_ingredients = ingredients_string.replace("'", "''")
-
-            insert_query = f"""
-                INSERT INTO smoothies.public.orders (order_filled, name_on_order, ingredients)
-                VALUES (FALSE, '{safe_name}', '{safe_ingredients}')
-            """
-            try:
-                session.sql(insert_query).collect()
-                st.success(f'Your Smoothie is ordered, {name_on_order}! 🍹', icon="✅")
-            except Exception as e:
-                st.error(f"Error placing order: {e}")
+        session.sql("INSERT INTO smoothies.public.orders (ingredients, name_on_order) VALUES (?, ?)", 
+                    (ingredients_string, name_on_order)).collect()
+        st.success(f'Your Smoothie is ordered, {name_on_order}!', icon="✅")
