@@ -9,7 +9,7 @@ st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
 st.write("Choose the fruits you want in your custom smoothie")
 
 # User input for name
-name_on_order = st.text_input('Name on Smoothie:')
+name_on_order = st.text_input('Name on Smoothie: ')
 st.write("The name on your Smoothie will be: ", name_on_order)
 
 # Connect to Snowflake
@@ -22,45 +22,42 @@ pd_df = my_dataframe.to_pandas()
 
 # Fruit selection
 ingredients_list = st.multiselect(
-    '🍓 Choose up to 5 ingredients:',
+    'Choose up to 5 ingredients:',
     pd_df['FRUIT_NAME'].tolist(),
     max_selections=5
 )
 
-# Display nutrition info for selected fruits
+# Handle ingredient selection
 if ingredients_list:
-    ingredients_string = ", ".join(ingredients_list)
+    ingredients_string = ", ".join(ingredients_list)  # Cleaned string format
 
+    # Display nutrition information
     for fruit_chosen in ingredients_list:
         search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
+        st.write(f'The search value for {fruit_chosen} is {search_on}.')
         st.subheader(f'{fruit_chosen} Nutrition Information')
 
-        response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
-        if response.status_code == 200:
-            st.dataframe(data=response.json(), use_container_width=True)
+        smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
+        if smoothiefroot_response.status_code == 200:
+            st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
         else:
             st.error(f"Failed to fetch nutrition info for {fruit_chosen}.")
 
-    # Order Preview
-    st.markdown("### 🧾 Order Preview")
-    st.write(f"**Name:** {name_on_order}")
-    st.write(f"**Ingredients:** {ingredients_string}")
-    st.write(f"**Order Status:** Not Filled")
-
-    # Submit button
+    # Submit order button
     if st.button('Submit Order'):
-    if name_on_order.strip() == "":
-        st.warning("Please enter a name before submitting your order.")
-    else:
-        # Escape values to prevent SQL errors
-        safe_name = name_on_order.replace("'", "''")
-        safe_ingredients = ingredients_string.replace("'", "''")
+        if name_on_order.strip() == "":
+            st.warning("Please enter a name before submitting your order.")
+        else:
+            # Escape values for SQL
+            safe_name = name_on_order.replace("'", "''")
+            safe_ingredients = ingredients_string.replace("'", "''")
 
-        # Build and run SQL
-        insert_query = f"""
-            INSERT INTO smoothies.public.orders (order_filled, name_on_order, ingredients)
-            VALUES (FALSE, '{safe_name}', '{safe_ingredients}')
-        """
-        session.sql(insert_query).collect()
-
-        st.success(f'Your Smoothie is ordered, {name_on_order}! 🍹', icon="✅")
+            insert_query = f"""
+                INSERT INTO smoothies.public.orders (order_filled, name_on_order, ingredients)
+                VALUES (FALSE, '{safe_name}', '{safe_ingredients}')
+            """
+            try:
+                session.sql(insert_query).collect()
+                st.success(f'Your Smoothie is ordered, {name_on_order}! 🍹', icon="✅")
+            except Exception as e:
+                st.error(f"Error placing order: {e}")
